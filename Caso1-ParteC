@@ -1,0 +1,32 @@
+import pandas as pd
+from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
+import numpy as np
+import scipy as sp
+
+
+datossp = pd.read_csv(r"^SPX.csv")
+datossp["Date"] = pd.to_datetime(datossp["Date"])
+sp500 = pd.Series(data=datossp["Adj Close"].values, index = datossp["Date"])
+sp500.plot()
+
+plot_acf(sp500);
+
+from statsmodels.tsa.stattools import adfuller
+dftest = adfuller(sp500, regression = "c", autolag = "AIC")
+dftest
+
+# Se busca un p value bajo para aceptar estacionaeridad. 
+# En esta situacion se diferencia la serie
+
+dlsp500 = np.log(sp500).diff().dropna()
+dlsp500.plot()
+
+# Ventana de volatilidad 30 días
+dlsp500.rolling(30).std().plot()
+
+# Exponenttially Weighted Moving Average (EWMA): Reducir impacto de la influencia de datos muy antiguos/irrelevantes. \sqrt{\sum^\infty_{i=0} \alpha^{i+1}(X_{t-i}-\bar{X})^2}
+prom_mov = dlsp500.ewm(alpha=0.1).std()
+prom_mov.plot()
+
+#LCMF
+#LBNTS     
